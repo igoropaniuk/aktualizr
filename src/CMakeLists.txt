@@ -14,7 +14,6 @@ add_subdirectory("aktualizr_info")
 add_subdirectory("uptane_generator")
 
 add_subdirectory("cert_provider")
-add_subdirectory("aktualizr_lite")
 add_subdirectory("aktualizr_get")
 
 add_subdirectory("load_tests")

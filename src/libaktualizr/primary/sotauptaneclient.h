@@ -33,16 +33,20 @@ class SotaUptaneClient {
   SotaUptaneClient(Config &config_in, std::shared_ptr<INvStorage> storage_in, std::shared_ptr<HttpInterface> http_in,
                    std::shared_ptr<event::Channel> events_channel_in,
                    const Uptane::EcuSerial &primary_serial = Uptane::EcuSerial::Unknown(),
-                   const Uptane::HardwareIdentifier &hwid = Uptane::HardwareIdentifier::Unknown())
+                   const Uptane::HardwareIdentifier &hwid = Uptane::HardwareIdentifier::Unknown(),
+                   const std::shared_ptr<ReportQueue> &report_queue_in = nullptr)
       : config(config_in),
         storage(std::move(storage_in)),
         http(std::move(http_in)),
         package_manager_(PackageManagerFactory::makePackageManager(config.pacman, config.bootloader, storage, http)),
         uptane_fetcher(new Uptane::Fetcher(config, http)),
+        report_queue(report_queue_in),
         events_channel(std::move(events_channel_in)),
         primary_ecu_serial_(primary_serial),
         primary_ecu_hw_id_(hwid) {
-    report_queue = std_::make_unique<ReportQueue>(config, http, storage);
+    if (!report_queue) {
+      report_queue = std_::make_unique<ReportQueue>(config, http, storage);
+    }
   }
 
   SotaUptaneClient(Config &config_in, const std::shared_ptr<INvStorage> &storage_in,
@@ -168,7 +172,7 @@ class SotaUptaneClient {
   std::shared_ptr<HttpInterface> http;
   std::shared_ptr<PackageManagerInterface> package_manager_;
   std::shared_ptr<Uptane::Fetcher> uptane_fetcher;
-  std::unique_ptr<ReportQueue> report_queue;
+  std::shared_ptr<ReportQueue> report_queue;
   Json::Value last_network_info_reported;
   Json::Value last_hw_info_reported;
   std::shared_ptr<event::Channel> events_channel;

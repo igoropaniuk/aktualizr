@@ -51,6 +51,9 @@ void ReportQueue::flushQueue() {
   }
 
   if (!report_array.empty()) {
+    auto timenow = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+    LOG_ERROR << ">>>> tid: ( " << std::this_thread::get_id() << " )" << "time: " << ctime(&timenow)  << " Report queue: " << report_array;
     HttpResponse response = http->post(config.tls.server + "/events", report_array);
 
     // 404 implies the server does not support this feature. Nothing we can
@@ -62,6 +65,8 @@ void ReportQueue::flushQueue() {
     if (response.isOk() || response.http_status_code == 404) {
       report_array.clear();
       storage->deleteReportEvents(max_id);
+    } else {
+      LOG_ERROR << ">>>> Failed to send events: " << response.getStatusStr();
     }
   }
 }

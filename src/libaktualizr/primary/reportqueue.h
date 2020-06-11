@@ -90,10 +90,9 @@ class ReportQueue {
   ~ReportQueue();
   void run();
   void enqueue(std::unique_ptr<ReportEvent> event);
-
- private:
   void flushQueue();
 
+ private:
   const Config& config;
   std::shared_ptr<HttpInterface> http;
   std::thread thread_;

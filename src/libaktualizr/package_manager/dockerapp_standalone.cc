@@ -124,13 +124,19 @@ bool DockerAppStandalone::iterate_apps(const Uptane::Target &target, const Docke
   }
 
   for (const auto &t : Uptane::LazyTargetsList(repo, storage_, fake_fetcher_)) {
+    LOG_DEBUG << "Checking target from the Lazy target list: " << t;
     for (Json::ValueIterator i = apps.begin(); i != apps.end(); ++i) {
+      LOG_DEBUG << "Checking new Target app: " << *i;
       if ((*i).isObject() && (*i).isMember("filename")) {
         for (const auto &app : dappcfg_.docker_apps) {
+          LOG_DEBUG << "Checking app from config: " << app;
           if (i.key().asString() == app && (*i)["filename"].asString() == t.filename()) {
+            LOG_DEBUG << "Found match: " << app;
             if (!cb(app, t)) {
               res = false;
             }
+          } else {
+            LOG_DEBUG << "Docker app target does not match: " << i.key().asString() << "!="  << app << " , " << (*i)["filename"].asString() << " != " << t.filename();
           }
         }
       } else if ((*i).isObject() && (*i).isMember("uri")) {

@@ -136,7 +136,7 @@ data::InstallationResult DockerAppBundles::install(const Uptane::Target &target)
   if (current.sha256Hash() != target.sha256Hash()) {
     // notify the bootloader before installation happens as it is not atomic
     // and a false notification doesn't hurt with rollback support in place
-    updateNotify();
+    const_cast<DockerAppBundles*>(this)->updateNotify();
     res = OstreeManager::install(target);
     if (res.result_code.num_code == data::ResultCode::Numeric::kInstallFailed) {
       LOG_ERROR << "Failed to install OSTree target, skipping Docker Apps";

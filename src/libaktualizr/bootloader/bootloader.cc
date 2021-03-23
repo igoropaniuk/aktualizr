@@ -75,6 +75,9 @@ void Bootloader::updateNotify() const {
       if (Utils::shell("fw_setenv upgrade_available 1", &sink) != 0) {
         LOG_WARNING << "Failed setting upgrade_available for u-boot";
       }
+      if (Utils::shell("fw_setenv bootupgrade_available 1", &sink) != 0) {
+        LOG_WARNING << "Failed setting bootupgrade_available for u-boot";
+      }
       if (Utils::shell("fw_setenv rollback 0", &sink) != 0) {
         LOG_WARNING << "Failed resetting rollback flag";
       }
@@ -88,6 +91,9 @@ void Bootloader::updateNotify() const {
       }
       if (Utils::shell("fiovb_setenv rollback 0", &sink) != 0) {
         LOG_WARNING << "Failed resetting rollback flag";
+      }
+      if (Utils::shell("fiovb_setenv bootupgrade_available 1", &sink) != 0) {
+        LOG_WARNING << "Failed to set bootupgrade_available";
       }
       break;
     default:

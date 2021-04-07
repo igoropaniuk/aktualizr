@@ -10,6 +10,7 @@ class Bootloader {
   Bootloader(BootloaderConfig config, INvStorage& storage);
   void setBootOK() const;
   void updateNotify() const;
+  void installNotify(const Uptane::Target& target) const;
 
   // Reboot handling (uses storage)
   //

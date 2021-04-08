@@ -97,19 +97,56 @@ void Bootloader::updateNotify() const {
 
 void Bootloader::installNotify(const Uptane::Target& target) const {
   std::string sink;
+  std::string target_hash = target.sha256Hash();
+  std::string version_flag = "bootfirmware_version";
+  // TODO: provide initial /ostree/deploy/lmp/deploy/ from config
+  // instead of hardcoding that here
+  std::string version_file = std::string("/ostree/deploy/lmp/deploy/" +
+                                         target_hash + ".0"
+                                         "/usr/lib/firmware/version.txt");
+  std::ifstream t(version_file);
+  LOG_INFO << "Reading target boot firmware version file: " << version_file;
+
+  std::string target_firmware_ver((std::istreambuf_iterator<char>(t)),
+                                   std::istreambuf_iterator<char>());
+  // Drop "bootfirmware_flag=" substring
+  std::string::size_type i = target_firmware_ver.find(version_flag);
+  if (i != std::string::npos)
+    target_firmware_ver.erase(i, version_flag.length() + 1);
+
+  LOG_INFO << "Target boot firmware version: " << target_firmware_ver;
+
   switch (config_.rollback_mode) {
     case RollbackMode::kBootloaderNone:
       break;
     case RollbackMode::kUbootGeneric:
       break;
     case RollbackMode::kUbootMasked:
-      if (Utils::shell("fw_setenv bootupgrade_available 1", &sink) != 0) {
-        LOG_WARNING << "Failed setting bootupgrade_available for u-boot";
+      if (Utils::shell("fw_printenv bootfirmware_version", &sink) != 0) {
+        LOG_WARNING << "Failed getting bootfirmware_version for u-boot";
+      }
+      LOG_INFO << "Current boot firmware version: " << sink;
+      if (sink.compare(target_firmware_ver) != 0) {
+        LOG_INFO << "Update boot firmware to version: " << target_firmware_ver;
+        if (Utils::shell("fw_setenv bootupgrade_available 1", &sink) != 0) {
+          LOG_WARNING << "Failed setting bootupgrade_available for u-boot";
+        }
+      } else {
+        LOG_INFO << "Update of boot firmware is not needed" << sink;
       }
       break;
     case RollbackMode::kFioVB:
-      if (Utils::shell("fiovb_setenv bootupgrade_available 1", &sink) != 0) {
-        LOG_WARNING << "Failed to set bootupgrade_available";
+      if (Utils::shell("fiovb_printenv bootfirmware_version", &sink) != 0) {
+        LOG_WARNING << "Failed getting bootfirmware_version for u-boot";
+      }
+      LOG_INFO << "Current boot firmware version: " << sink;
+      if (sink.compare(target_firmware_ver) != 0) {
+        LOG_INFO << "Update boot firmware to version: " << target_firmware_ver;
+        if (Utils::shell("fiovb_setenv bootupgrade_available 1", &sink) != 0) {
+          LOG_WARNING << "Failed to set bootupgrade_available";
+        }
+      } else {
+        LOG_INFO << "Update of boot firmware is not needed" << sink;
       }
       break;
     default:
